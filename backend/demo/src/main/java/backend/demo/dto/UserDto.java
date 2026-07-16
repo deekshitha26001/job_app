@@ -16,4 +16,5 @@ public class UserDto {
     private String email;
     private String resumeUrl;
     private String resumeName;
+    private String role;
 }

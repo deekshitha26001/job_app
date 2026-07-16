@@ -9,6 +9,7 @@ interface User {
   email: string;
   resumeUrl?: string;
   resumeName?: string;
+  role?: string;
 }
 
 interface AuthContextType {

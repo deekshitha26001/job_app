@@ -1,7 +1,116 @@
 "use client";
-import { useState } from "react";
-import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
-import { jobs } from "@/lib/mock-data";
-import { JobCard } from "@/components/job-card";
-import { Job } from "@/lib/types";
-export default function Jobs(){const [query,setQuery]=useState(""),[mode,setMode]=useState("All"),[selected,setSelected]=useState<Job|null>(null);const shown=jobs.filter(j=>(j.title+j.company.name).toLowerCase().includes(query.toLowerCase())&&(mode==="All"||j.workMode===mode));return <div className="mx-auto max-w-6xl"><p className="text-sm font-medium text-violet-600">OPPORTUNITIES</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Find your next role.</h1><div className="mt-7 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-3 sm:flex-row dark:border-zinc-800 dark:bg-zinc-900"><label className="flex flex-1 items-center gap-2 px-2"><Search size={18} className="text-zinc-400"/><input value={query} onChange={e=>setQuery(e.target.value)} className="h-10 w-full bg-transparent text-sm outline-none" placeholder="Search title or company"/></label><button className="flex items-center justify-center gap-2 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white"><SlidersHorizontal size={16}/>Filters</button></div><div className="mt-5 flex gap-2">{["All","Remote","Hybrid","On-site"].map(x=><button onClick={()=>setMode(x)} key={x} className={`rounded-full px-3 py-1.5 text-sm font-medium ${mode===x?"bg-violet-100 text-violet-700":"bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"}`}>{x}</button>)}</div><div className="mt-7 grid gap-5 lg:grid-cols-2">{shown.length?shown.map(j=><JobCard key={j.id} job={j} onOpen={setSelected}/>):<div className="col-span-2 py-20 text-center text-zinc-500"><Filter className="mx-auto mb-3"/>No roles match those filters. Try broadening your search.</div>}</div>{selected&&<div className="fixed inset-0 z-40 grid place-items-center bg-zinc-950/40 p-4"><section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-zinc-900"><div className="flex justify-between"><div className="flex gap-3"><div className={`grid h-12 w-12 place-items-center rounded-xl font-bold text-white ${selected.company.color}`}>{selected.company.initials}</div><div><h2 className="text-xl font-semibold">{selected.title}</h2><p className="text-sm text-zinc-500">{selected.company.name} · {selected.location}</p></div></div><button onClick={()=>setSelected(null)} aria-label="Close"><X/></button></div><h3 className="mt-8 font-semibold">About this role</h3><p className="mt-3 leading-7 text-zinc-600 dark:text-zinc-300">{selected.description} We’re looking for a thoughtful collaborator with excellent craft, sharp product instincts, and a desire to make a real difference.</p><h3 className="mt-7 font-semibold">What you’ll bring</h3><ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-600 dark:text-zinc-300"><li>A portfolio demonstrating considered, high-quality work.</li><li>Excellent communication and systems thinking.</li><li>Comfort working in a fast-moving team.</li></ul><button onClick={()=>setSelected(null)} className="mt-8 w-full rounded-lg bg-violet-600 py-3 text-sm font-bold text-white">Apply now</button></section></div>}</div>}
+
+import { useState, useEffect } from "react";
+import { Search, Loader2, AlertCircle, Filter } from "lucide-react";
+import { AtsJobCard, AtsJob } from "@/components/ats-job-card";
+
+export default function Jobs() {
+  const [jobs, setJobs] = useState<AtsJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [query, setQuery] = useState("");
+  const [provider, setProvider] = useState("All");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:8080/api/jobs", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data) => setJobs(Array.isArray(data) ? data : []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const providers = ["All", ...Array.from(new Set(jobs.map((j) => j.atsProvider)))];
+
+  const shown = jobs.filter((j) => {
+    const matchQuery =
+      j.title.toLowerCase().includes(query.toLowerCase()) ||
+      j.companyName.toLowerCase().includes(query.toLowerCase()) ||
+      (j.location || "").toLowerCase().includes(query.toLowerCase());
+    const matchProvider = provider === "All" || j.atsProvider === provider;
+    return matchQuery && matchProvider;
+  });
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <p className="text-sm font-medium text-violet-600">OPPORTUNITIES</p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Find your next role.</h1>
+
+      {/* Search bar */}
+      <div className="mt-7 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-3 sm:flex-row dark:border-zinc-800 dark:bg-zinc-900">
+        <label className="flex flex-1 items-center gap-2 px-2">
+          <Search size={18} className="text-zinc-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-10 w-full bg-transparent text-sm outline-none"
+            placeholder="Search title, company or location…"
+          />
+        </label>
+      </div>
+
+      {/* Provider filters */}
+      {!loading && !error && providers.length > 1 && (
+        <div className="mt-5 flex flex-wrap gap-2">
+          {providers.map((p) => (
+            <button
+              key={p}
+              onClick={() => setProvider(p)}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                provider === p
+                  ? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+              }`}
+            >
+              {p === "GREENHOUSE" ? "Greenhouse" : p === "LEVER" ? "Lever" : p === "WORKDAY" ? "Workday" : p}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* States */}
+      {loading && (
+        <div className="mt-16 flex flex-col items-center gap-3 text-zinc-400">
+          <Loader2 className="animate-spin" size={32} />
+          <p className="text-sm">Fetching live jobs from all registered companies…</p>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="mt-16 flex flex-col items-center gap-3 text-zinc-500">
+          <AlertCircle size={32} />
+          <p className="text-sm font-medium">Failed to load jobs. Please try again later.</p>
+        </div>
+      )}
+
+      {!loading && !error && shown.length === 0 && (
+        <div className="mt-16 flex flex-col items-center gap-3 text-zinc-500">
+          <Filter size={32} />
+          <p className="text-sm font-medium">
+            {jobs.length === 0
+              ? "No jobs yet. Ask your admin to register some companies."
+              : "No roles match those filters. Try broadening your search."}
+          </p>
+        </div>
+      )}
+
+      {!loading && !error && shown.length > 0 && (
+        <>
+          <p className="mt-6 text-sm text-zinc-500">
+            Showing <strong className="text-zinc-900 dark:text-white">{shown.length}</strong> live {shown.length === 1 ? "role" : "roles"}
+          </p>
+          <div className="mt-4 grid gap-5 lg:grid-cols-2">
+            {shown.map((job) => (
+              <AtsJobCard key={`${job.companyName}-${job.id}`} job={job} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

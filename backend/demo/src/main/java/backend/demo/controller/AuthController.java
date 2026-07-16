@@ -77,6 +77,7 @@ public class AuthController {
                     .email(dbUser.getEmail())
                     .resumeUrl(dbUser.getResumeUrl())
                     .resumeName(dbUser.getResumeName())
+                    .role(dbUser.getRole().name())
                     .build();
 
             return ResponseEntity.ok(userDto);
@@ -103,6 +104,7 @@ public class AuthController {
                     .email(dbUser.getEmail())
                     .resumeUrl(dbUser.getResumeUrl())
                     .resumeName(dbUser.getResumeName())
+                    .role(dbUser.getRole().name())
                     .build();
 
             return ResponseEntity.ok(updatedDto);
