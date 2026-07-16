@@ -33,6 +33,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "resume_url")
+    private String resumeUrl;
+
+    @Column(name = "resume_name")
+    private String resumeName;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;

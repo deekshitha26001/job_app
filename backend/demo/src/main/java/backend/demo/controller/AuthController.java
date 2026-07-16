@@ -70,14 +70,44 @@ public class AuthController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             User user = (User) authentication.getPrincipal();
 
+            User dbUser = userRepository.findById(user.getId()).orElseThrow();
+
             UserDto userDto = UserDto.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
+                    .id(dbUser.getId())
+                    .email(dbUser.getEmail())
+                    .resumeUrl(dbUser.getResumeUrl())
+                    .resumeName(dbUser.getResumeName())
                     .build();
 
             return ResponseEntity.ok(userDto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+        }
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMe(@RequestBody UserDto userDto) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User user = (User) authentication.getPrincipal();
+
+            User dbUser = userRepository.findById(user.getId()).orElseThrow();
+
+            dbUser.setResumeUrl(userDto.getResumeUrl());
+            dbUser.setResumeName(userDto.getResumeName());
+
+            userRepository.save(dbUser);
+
+            UserDto updatedDto = UserDto.builder()
+                    .id(dbUser.getId())
+                    .email(dbUser.getEmail())
+                    .resumeUrl(dbUser.getResumeUrl())
+                    .resumeName(dbUser.getResumeName())
+                    .build();
+
+            return ResponseEntity.ok(updatedDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Could not update profile"));
         }
     }
 }

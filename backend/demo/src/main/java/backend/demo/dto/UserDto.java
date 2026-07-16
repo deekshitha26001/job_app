@@ -14,4 +14,6 @@ import java.util.UUID;
 public class UserDto {
     private UUID id;
     private String email;
+    private String resumeUrl;
+    private String resumeName;
 }
