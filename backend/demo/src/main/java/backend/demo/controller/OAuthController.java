@@ -134,26 +134,48 @@ public class OAuthController {
         }
 
         try {
-            // 1. Exchange code for access token
+            // 1. Exchange code for access token.
+            //
+            // NOTE: redirect_uri is intentionally OMITTED from the token exchange.
+            // GitHub's docs state that if redirect_uri is included here it must
+            // exactly match the one used in the authorization step AND the one
+            // registered in the GitHub OAuth App — any mismatch causes
+            // "bad_verification_code". Omitting it is safe and recommended when
+            // the App has a single callback URL registered.
+            String body = "code=" + encode(request.getCode())
+                    + "&client_id=" + encode(githubClientId)
+                    + "&client_secret=" + encode(githubClientSecret);
+
+            log.debug("GitHub token exchange: client_id={}, code_prefix={}",
+                    githubClientId,
+                    request.getCode() != null && request.getCode().length() > 6
+                            ? request.getCode().substring(0, 6) + "..." : "<empty>");
+
             String tokenJson = RestClient.create()
                     .post()
                     .uri("https://github.com/login/oauth/access_token")
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .body("code=" + encode(request.getCode())
-                            + "&client_id=" + encode(githubClientId)
-                            + "&client_secret=" + encode(githubClientSecret)
-                            + "&redirect_uri=" + encode(request.getRedirectUri()))
+                    .body(body)
                     .retrieve()
                     .body(String.class);
+
+            log.debug("GitHub token response: {}", tokenJson);
 
             JsonNode tokenNode = objectMapper.readTree(tokenJson);
             String accessToken = tokenNode.path("access_token").asText();
 
+            // GitHub returns error details in the JSON when the exchange fails
             if (accessToken.isBlank()) {
-                log.warn("GitHub token exchange returned no access_token: {}", tokenJson);
+                String ghError = tokenNode.path("error").asText("");
+                String ghDesc  = tokenNode.path("error_description").asText("");
+                log.warn("GitHub token exchange failed — error='{}' description='{}' raw='{}'",
+                        ghError, ghDesc, tokenJson);
+                String userMsg = ghError.isBlank()
+                        ? "GitHub sign-in failed: could not obtain access token."
+                        : "GitHub sign-in failed: " + ghDesc + " (" + ghError + ")";
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("message", "GitHub sign-in failed: could not obtain access token."));
+                        .body(Map.of("message", userMsg));
             }
 
             // 2. Fetch user profile
@@ -216,10 +238,9 @@ public class OAuthController {
         }
 
         User newUser = User.builder()
-                .id(UUID.randomUUID())
                 .name(name)
                 .email(email)
-                .password(null)       // OAuth-only account — no password
+                .password(UUID.randomUUID().toString()) // Dummy password to satisfy DB NOT NULL constraint
                 .provider(provider)
                 .providerId(providerId)
                 .role(Role.USER)

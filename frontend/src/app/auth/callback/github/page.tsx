@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { BriefcaseBusiness, Loader2, AlertCircle } from "lucide-react";
@@ -18,8 +18,12 @@ export default function GithubCallback() {
   const router = useRouter();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const called = useRef(false);
 
   useEffect(() => {
+    if (called.current) return;
+    called.current = true;
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const oauthError = params.get("error");
