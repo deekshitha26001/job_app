@@ -19,9 +19,9 @@ public class AtsService {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    public AtsService() {
+    public AtsService(ObjectMapper objectMapper) {
         this.restClient = RestClient.create();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
     public AtsProvider detectProvider(String url) {

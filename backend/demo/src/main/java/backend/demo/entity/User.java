@@ -28,11 +28,23 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(nullable = true)
+    private String name;
+
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    /** Null for OAuth-only accounts */
+    @Column
     private String password;
+
+    /** OAuth provider name: "google", "github", or null for email/password accounts */
+    @Column
+    private String provider;
+
+    /** The user's ID from the OAuth provider */
+    @Column(name = "provider_id")
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -56,6 +68,12 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
+
+    /** Returns the stored password, or empty string for OAuth-only accounts. */
+    @Override
+    public String getPassword() {
+        return password != null ? password : "";
     }
 
     @Override

@@ -36,6 +36,7 @@ public class AuthController {
             }
 
             User user = User.builder()
+                    .name(request.getName() != null ? request.getName() : request.getEmail().split("@")[0])
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .build();
