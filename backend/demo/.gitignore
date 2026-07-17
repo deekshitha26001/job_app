@@ -31,5 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
-backend/demo/src/main/resources/application.properties
-backend/demo/src/main/resources/application-secrets.properties
+src/main/resources/application.properties
+src/main/resources/application-secrets.properties
