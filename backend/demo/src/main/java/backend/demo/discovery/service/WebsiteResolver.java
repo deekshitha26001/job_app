@@ -1,25 +1,27 @@
 package backend.demo.discovery.service;
 
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class WebsiteResolver {
 
+    private final CompanyQualityFilter qualityFilter;
+
+    public WebsiteResolver(CompanyQualityFilter qualityFilter) {
+        this.qualityFilter = qualityFilter;
+    }
+
+    /**
+     * From a list of raw search result URLs, returns the first one that
+     * passes the CompanyQualityFilter (i.e. is an actual company website).
+     * Returns null if none qualify.
+     */
     public String resolveOfficialWebsite(List<String> searchResults) {
-        for (String link : searchResults) {
-            String lowerLink = link.toLowerCase();
-            // Filter out common job boards, directories, and social media
-            if (!lowerLink.contains("linkedin.com") && 
-                !lowerLink.contains("glassdoor.com") && 
-                !lowerLink.contains("crunchbase.com") &&
-                !lowerLink.contains("bloomberg.com") &&
-                !lowerLink.contains("wikipedia.org") &&
-                !lowerLink.contains("indeed.com") &&
-                !lowerLink.contains("naukri.com")) {
-                return link;
-            }
-        }
-        return null;
+        return searchResults.stream()
+                .filter(qualityFilter::isCompanyWebsite)
+                .findFirst()
+                .orElse(null);
     }
 }

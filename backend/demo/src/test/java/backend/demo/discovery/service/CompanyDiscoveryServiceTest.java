@@ -26,7 +26,7 @@ class CompanyDiscoveryServiceTest {
             return Arrays.asList("https://www.phonepe.com", "https://linkedin.com/company/phonepe");
         };
         
-        websiteResolver = new WebsiteResolver();
+        websiteResolver = new WebsiteResolver(new CompanyQualityFilter());
         careerPageFinder = new CareerPageFinder(mockSearchProvider);
         companyValidator = new CompanyValidator();
         service = new CompanyDiscoveryService(mockSearchProvider, websiteResolver, careerPageFinder, companyValidator);

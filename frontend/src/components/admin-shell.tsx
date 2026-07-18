@@ -11,12 +11,14 @@ import {
   LogOut,
   Shield,
   Loader2,
+  Search,
 } from "lucide-react";
 
 const navItems = [
   ["Overview", "/admin", LayoutDashboard],
   ["Companies", "/admin/companies", Building2],
   ["Add Company", "/admin/companies/add", PlusCircle],
+  ["Company Discovery", "/admin/discovery", Search],
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
