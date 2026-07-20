@@ -7,6 +7,9 @@ import backend.demo.entity.User;
 import backend.demo.repository.UserRepository;
 import backend.demo.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import backend.demo.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +30,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody AuthRequest request) {
@@ -50,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpServletRequest httpRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -58,6 +62,14 @@ public class AuthController {
 
             User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
             String jwtToken = jwtService.generateToken(user);
+
+            // Send login notification
+            String ipAddress = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAddress == null || ipAddress.isEmpty()) {
+                ipAddress = httpRequest.getRemoteAddr();
+            }
+            String device = httpRequest.getHeader("User-Agent");
+            emailService.sendLoginNotification(user, "Email/Password", ipAddress, device);
 
             return ResponseEntity.ok(AuthResponse.builder().token(jwtToken).build());
         } catch (Exception e) {

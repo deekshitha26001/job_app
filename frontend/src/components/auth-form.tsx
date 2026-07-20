@@ -361,16 +361,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                   />
                   Remember me
                 </label>
-                <a
-                  href="#"
+                <Link
+                  href="/forgot-password"
                   className="font-medium text-violet-600 hover:underline"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toast.info("Password reset coming soon!");
-                  }}
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
             )}
 

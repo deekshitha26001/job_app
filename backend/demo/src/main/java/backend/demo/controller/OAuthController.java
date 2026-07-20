@@ -6,8 +6,10 @@ import backend.demo.entity.Role;
 import backend.demo.entity.User;
 import backend.demo.repository.UserRepository;
 import backend.demo.security.JwtService;
+import backend.demo.service.EmailService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +47,7 @@ public class OAuthController {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+    private final EmailService emailService;
 
     @Value("${oauth.google.client-id:}")
     private String googleClientId;
@@ -61,7 +64,7 @@ public class OAuthController {
     // ── Google ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/google")
-    public ResponseEntity<?> googleOAuth(@RequestBody OAuthRequest request) {
+    public ResponseEntity<?> googleOAuth(@RequestBody OAuthRequest request, HttpServletRequest httpRequest) {
         if (googleClientId.isBlank() || googleClientSecret.isBlank()) {
             return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                     .body(Map.of("message", "Google OAuth is not configured on this server. "
@@ -114,6 +117,15 @@ public class OAuthController {
 
             // 4. Issue JWT
             String jwt = jwtService.generateToken(user);
+
+            // Send login notification
+            String ipAddress = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAddress == null || ipAddress.isEmpty()) {
+                ipAddress = httpRequest.getRemoteAddr();
+            }
+            String device = httpRequest.getHeader("User-Agent");
+            emailService.sendLoginNotification(user, "Google", ipAddress, device);
+
             return ResponseEntity.ok(AuthResponse.builder().token(jwt).build());
 
         } catch (Exception e) {
@@ -126,7 +138,7 @@ public class OAuthController {
     // ── GitHub ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/github")
-    public ResponseEntity<?> githubOAuth(@RequestBody OAuthRequest request) {
+    public ResponseEntity<?> githubOAuth(@RequestBody OAuthRequest request, HttpServletRequest httpRequest) {
         if (githubClientId.isBlank() || githubClientSecret.isBlank()) {
             return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                     .body(Map.of("message", "GitHub OAuth is not configured on this server. "
@@ -208,6 +220,15 @@ public class OAuthController {
 
             // 4. Issue JWT
             String jwt = jwtService.generateToken(user);
+
+            // Send login notification
+            String ipAddress = httpRequest.getHeader("X-Forwarded-For");
+            if (ipAddress == null || ipAddress.isEmpty()) {
+                ipAddress = httpRequest.getRemoteAddr();
+            }
+            String device = httpRequest.getHeader("User-Agent");
+            emailService.sendLoginNotification(user, "GitHub", ipAddress, device);
+
             return ResponseEntity.ok(AuthResponse.builder().token(jwt).build());
 
         } catch (Exception e) {

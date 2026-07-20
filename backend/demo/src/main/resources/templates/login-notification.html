@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Notification</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { font-size: 24px; color: #333333; margin-bottom: 20px; }
+        .content { font-size: 16px; color: #555555; line-height: 1.6; }
+        .details { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .details p { margin: 5px 0; font-weight: bold; }
+        .details span { font-weight: normal; }
+        .footer { font-size: 14px; color: #888888; margin-top: 30px; text-align: center; }
+        .alert { color: #d9534f; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">New Login to Your Account</div>
+        <div class="content">
+            <p>Hello <span th:text="${name}">User</span>,</p>
+            <p>Your account was successfully logged in.</p>
+            
+            <div class="details">
+                <p>Login Method: <span th:text="${loginMethod}">Method</span></p>
+                <p>Date & Time: <span th:text="${dateTime}">Date Time</span></p>
+                <p>Device/Browser: <span th:text="${device}">Device Info</span></p>
+                <p>IP Address: <span th:text="${ipAddress}">IP</span></p>
+            </div>
+            
+            <p class="alert">If this wasn't you, please reset your password immediately or contact support.</p>
+        </div>
+        <div class="footer">
+            <p>Thank you,<br>Job Portal Team</p>
+        </div>
+    </div>
+</body>
+</html>
