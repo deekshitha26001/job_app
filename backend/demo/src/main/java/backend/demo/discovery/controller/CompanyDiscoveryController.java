@@ -22,7 +22,7 @@ public class CompanyDiscoveryController {
         this.orchestrator = orchestrator;
     }
 
-    /** Existing endpoint: raw discovery without review-queue submission. */
+    /** Raw AI-assisted registry expansion without review-queue submission. */
     @GetMapping("/companies")
     public ResponseEntity<List<DiscoveryResult>> discover(
             @RequestParam String country,
@@ -62,4 +62,3 @@ public class CompanyDiscoveryController {
         return ResponseEntity.ok(summary);
     }
 }
-

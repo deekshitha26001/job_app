@@ -62,6 +62,11 @@ public class CompanyQualityFilter {
             "ambitionbox.com",
             "comparably.com",
             "owler.com",
+            "screener.in",
+            "justdial.com",
+            "clutch.co",
+            "goodfirms.co",
+            "ycombinator.com",
 
             // Blog / publishing platforms
             "medium.com",
@@ -88,7 +93,10 @@ public class CompanyQualityFilter {
             // Review / Q&A
             "quora.com",
             "reddit.com",
-            "stackoverflow.com"
+            "stackoverflow.com",
+            "google.com",
+            "bing.com",
+            "duckduckgo.com"
     );
 
     /**

@@ -26,6 +26,8 @@ public class ReviewService {
         pending.setCareerPageUrl(discovery.getCareerPage());
         pending.setIndustry(discovery.getIndustry());
         pending.setCountry(discovery.getCountry());
+        pending.setDiscoverySource(discovery.getDiscoverySource());
+        pending.setDiscoveryReason(discovery.getDiscoveryReason());
 
         if (atsResult != null) {
             pending.setDetectedAts(atsResult.getDetectedAts() != null ? atsResult.getDetectedAts().name() : "UNKNOWN");

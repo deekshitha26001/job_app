@@ -7,6 +7,8 @@ public class DiscoveryResult {
     private String logoUrl;
     private String industry;
     private String country;
+    private String discoverySource;
+    private String discoveryReason;
 
     public DiscoveryResult() {
     }
@@ -67,6 +69,11 @@ public class DiscoveryResult {
     public void setCountry(String country) {
         this.country = country;
     }
+
+    public String getDiscoverySource() { return discoverySource; }
+    public void setDiscoverySource(String discoverySource) { this.discoverySource = discoverySource; }
+    public String getDiscoveryReason() { return discoveryReason; }
+    public void setDiscoveryReason(String discoveryReason) { this.discoveryReason = discoveryReason; }
 
     @Override
     public String toString() {

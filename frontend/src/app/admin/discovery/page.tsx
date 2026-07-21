@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Zap,
 } from "lucide-react";
+import { fetchWithAuth } from "@/lib/api";
 
 interface PendingCompany {
   id: string;
@@ -22,6 +23,8 @@ interface PendingCompany {
   detectionMethod: string | null;
   industry: string;
   country: string;
+  discoverySource: string | null;
+  discoveryReason: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
 }
@@ -107,17 +110,15 @@ export default function CompanyDiscoveryPage() {
     setDiscoverySummary(null);
     setDiscoveryError(null);
     try {
-      const res = await fetch("http://localhost:8080/api/discovery/run", {
+      const summary: DiscoverySummary = await fetchWithAuth("/discovery/run", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token()}` },
       });
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const summary: DiscoverySummary = await res.json();
       setDiscoverySummary(summary);
       // Auto-refresh queue after discovery
       await fetchCompanies();
     } catch (e: unknown) {
-      setDiscoveryError(e instanceof Error ? e.message : "Discovery failed");
+      const message = e instanceof Error ? e.message : "Discovery failed";
+      setDiscoveryError(message.includes("403") ? "Your session is not authorized. Please log out and sign in again." : message);
     } finally {
       setDiscovering(false);
     }
@@ -221,8 +222,8 @@ export default function CompanyDiscoveryPage() {
             Company Discovery
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Run the discovery pipeline to find companies, then approve or reject
-            them for the registry.
+            Find competitors and similar companies based on your registered
+            companies, then approve or reject them for the registry.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -237,7 +238,7 @@ export default function CompanyDiscoveryPage() {
             ) : (
               <Zap size={14} />
             )}
-            {discovering ? "Discovering…" : "Discover Companies"}
+            {discovering ? "Researching…" : "Discover Similar Companies"}
           </button>
           <button
             id="refresh-btn"
@@ -375,17 +376,26 @@ export default function CompanyDiscoveryPage() {
                 <th className="px-4 py-3 text-left font-medium text-slate-500">
                   Company
                 </th>
+                <th className="hidden px-4 py-3 text-left font-medium text-slate-500 lg:table-cell">
+                  Official Website
+                </th>
                 <th className="hidden px-4 py-3 text-left font-medium text-slate-500 md:table-cell">
                   Career Page
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">
                   Detected ATS
                 </th>
+                <th className="hidden px-4 py-3 text-left font-medium text-slate-500 lg:table-cell">
+                  Discovery Reason
+                </th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">
                   Confidence
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">
                   Status
+                </th>
+                <th className="hidden px-4 py-3 text-left font-medium text-slate-500 xl:table-cell">
+                  Discovery Source
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">
                   Actions
@@ -426,6 +436,11 @@ export default function CompanyDiscoveryPage() {
                       </a>
                     )}
                   </td>
+                  <td className="hidden max-w-xs px-4 py-3 lg:table-cell">
+                    <a href={c.officialWebsite} target="_blank" rel="noopener noreferrer" className="truncate text-xs text-indigo-500 hover:underline">
+                      {c.officialWebsite}
+                    </a>
+                  </td>
                   <td className="hidden max-w-xs px-4 py-3 md:table-cell">
                     {c.careerPageUrl ? (
                       <a
@@ -451,6 +466,9 @@ export default function CompanyDiscoveryPage() {
                       {c.detectedAts}
                     </span>
                   </td>
+                  <td className="hidden max-w-xs px-4 py-3 text-xs text-slate-500 lg:table-cell">
+                    <span className="block truncate" title={c.discoveryReason ?? undefined}>{c.discoveryReason ?? "AI expansion"}</span>
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -469,6 +487,9 @@ export default function CompanyDiscoveryPage() {
                       {statusIcon[c.status]}
                       {c.status.charAt(0) + c.status.slice(1).toLowerCase()}
                     </span>
+                  </td>
+                  <td className="hidden max-w-xs px-4 py-3 text-xs text-slate-500 xl:table-cell">
+                    <span className="block truncate" title={c.discoverySource ?? undefined}>{c.discoverySource ?? "Direct search result"}</span>
                   </td>
                   <td className="px-4 py-3">
                     {c.status === "PENDING" ? (

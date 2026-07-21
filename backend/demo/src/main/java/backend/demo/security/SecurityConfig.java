@@ -40,7 +40,8 @@ public class SecurityConfig {
                     "/api/auth/oauth/**",
                     "/api/auth/forgot-password",
                     "/api/auth/reset-password",
-                    "/api/auth/verify-reset-token"
+                    "/api/auth/verify-reset-token",
+                    "/error"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

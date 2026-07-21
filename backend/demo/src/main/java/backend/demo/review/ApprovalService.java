@@ -28,8 +28,8 @@ public class ApprovalService {
             throw new IllegalStateException("Company is not in PENDING state: " + id);
         }
 
-        // Use the career page URL as the ATS API URL for the registered company.
-        String atsApiUrl = pending.getCareerPageUrl() != null ? pending.getCareerPageUrl() : pending.getOfficialWebsite();
+        // Construct the ATS API URL based on the detected ATS provider if available
+        String atsApiUrl = constructAtsApiUrl(pending);
 
         companyService.addCompany(
                 pending.getCompanyName(),
@@ -40,6 +40,19 @@ public class ApprovalService {
 
         pending.setStatus(ReviewStatus.APPROVED);
         return reviewService.save(pending);
+    }
+
+    private String constructAtsApiUrl(PendingCompany pending) {
+        String ats = pending.getDetectedAts();
+        if (ats != null) {
+            String sanitizedName = pending.getCompanyName().toLowerCase().replaceAll("[^a-z0-9]", "");
+            if ("LEVER".equalsIgnoreCase(ats)) {
+                return "https://api.lever.co/v0/postings/" + sanitizedName;
+            } else if ("GREENHOUSE".equalsIgnoreCase(ats)) {
+                return "https://boards-api.greenhouse.io/v1/boards/" + sanitizedName + "/jobs";
+            }
+        }
+        return pending.getCareerPageUrl() != null ? pending.getCareerPageUrl() : pending.getOfficialWebsite();
     }
 
     /**

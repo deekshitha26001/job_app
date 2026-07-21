@@ -41,6 +41,12 @@ public class PendingCompany {
     @Column(name = "country")
     private String country;
 
+    @Column(name = "discovery_source", length = 1024)
+    private String discoverySource;
+
+    @Column(name = "discovery_reason", length = 2048)
+    private String discoveryReason;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.PENDING;
@@ -72,6 +78,10 @@ public class PendingCompany {
     public void setIndustry(String industry) { this.industry = industry; }
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
+    public String getDiscoverySource() { return discoverySource; }
+    public void setDiscoverySource(String discoverySource) { this.discoverySource = discoverySource; }
+    public String getDiscoveryReason() { return discoveryReason; }
+    public void setDiscoveryReason(String discoveryReason) { this.discoveryReason = discoveryReason; }
     public ReviewStatus getStatus() { return status; }
     public void setStatus(ReviewStatus status) { this.status = status; }
     public Date getCreatedAt() { return createdAt; }

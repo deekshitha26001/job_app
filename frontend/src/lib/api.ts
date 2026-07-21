@@ -20,7 +20,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || 'An error occurred during the request.');
+    throw new Error(errorData?.message || `Request failed (${response.status}).`);
   }
 
   return response.json();

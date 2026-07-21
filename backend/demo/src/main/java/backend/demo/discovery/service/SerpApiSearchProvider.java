@@ -21,6 +21,9 @@ public class SerpApiSearchProvider implements SearchProvider {
     @Value("${serpapi.key:}")
     private String apiKey;
 
+    @Value("${company.discovery.results-per-query:5}")
+    private int resultsPerQuery;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
@@ -36,6 +39,7 @@ public class SerpApiSearchProvider implements SearchProvider {
                 .queryParam("q", query)
                 .queryParam("api_key", apiKey)
                 .queryParam("engine", "google")
+                .queryParam("num", resultsPerQuery)
                 .toUriString();
 
         try {
@@ -59,7 +63,7 @@ public class SerpApiSearchProvider implements SearchProvider {
         } catch (Exception e) {
             // Network / parsing errors — log the message only, never the key
             System.err.println("[SerpApiSearchProvider] Search failed for query '" + query + "': " + e.getMessage());
-            return new ArrayList<>();
+            throw new IllegalStateException("SERP API search failed. Check the server log and SERP API configuration.", e);
         }
     }
 }

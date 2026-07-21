@@ -61,7 +61,7 @@ public class DiscoveryOrchestrator {
         int skipped = 0;
         int failed = 0;
 
-        // Step 1: Discover companies via SERP API
+        // Step 1: Expand the registered-company ecosystem through Gemini
         List<DiscoveryResult> discovered = discoveryService.discoverCompanies(country, industry, keywords);
         int companiesFound = discovered.size();
 
